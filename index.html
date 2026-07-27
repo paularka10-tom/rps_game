@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rock Paper Scissors — Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0F3D3E;
+    --bg-deep: #0A2C2D;
+    --panel: #12474A;
+    --cream: #F4F0E6;
+    --mustard: #F2C14E;
+    --coral: #EF6461;
+    --steel: #9FB4B8;
+    --font-display: 'Baloo 2', sans-serif;
+    --font-body: 'Nunito Sans', sans-serif;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background: radial-gradient(circle at 50% -10%, var(--bg) 0%, var(--bg-deep) 65%);
+    font-family: var(--font-body);
+    color: var(--cream);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: 40px 20px 60px;
+  }
+
+  h1{
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    letter-spacing: 0.5px;
+    margin: 0 0 6px;
+    text-align:center;
+  }
+  h1 span{ color: var(--mustard); }
+
+  .subtitle{
+    color: var(--steel);
+    font-weight:600;
+    margin-bottom: 34px;
+    text-align:center;
+  }
+
+  .scoreboard{
+    display:flex;
+    gap: 18px;
+    margin-bottom: 34px;
+  }
+  .score-box{
+    background: var(--panel);
+    border-radius: 14px;
+    padding: 10px 22px;
+    text-align:center;
+    min-width: 90px;
+    border: 2px solid rgba(244,240,230,0.08);
+  }
+  .score-box .label{
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--steel);
+    font-weight: 800;
+  }
+  .score-box .value{
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    font-weight: 700;
+  }
+  .score-box.you .value{ color: var(--mustard); }
+  .score-box.cpu .value{ color: var(--coral); }
+
+  .arena{
+    width: min(560px, 92vw);
+    background: var(--panel);
+    border-radius: 24px;
+    padding: 34px 26px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    border: 2px solid rgba(244,240,230,0.08);
+  }
+
+  .clash{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 26px;
+    min-height: 130px;
+  }
+
+  .fighter{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    width: 40%;
+  }
+  .fighter .tag{
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-weight:800;
+    color: var(--steel);
+  }
+  .hand{
+    font-size: 4rem;
+    line-height:1;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.3));
+    transition: transform 0.25s ease;
+  }
+  .hand.you{ transform: scaleX(-1); }
+
+  .vs{
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: var(--mustard);
+    width: 20%;
+    text-align:center;
+  }
+
+  @keyframes clashPunch{
+    0%{ transform: translateX(0) scale(1); }
+    50%{ transform: translateX(var(--dir, 0)) scale(1.15); }
+    100%{ transform: translateX(0) scale(1); }
+  }
+  .hand.you.punch{ animation: clashPunch 0.4s ease; --dir: 14px; }
+  .hand.cpu.punch{ animation: clashPunch 0.4s ease; --dir: -14px; }
+
+  .result-line{
+    text-align:center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.3rem;
+    min-height: 34px;
+    margin-bottom: 22px;
+  }
+  .result-line.win{ color: var(--mustard); }
+  .result-line.lose{ color: var(--coral); }
+  .result-line.draw{ color: var(--steel); }
+
+  .choices{
+    display:flex;
+    gap: 14px;
+    justify-content:center;
+  }
+
+  .choice-btn{
+    flex:1;
+    background: var(--bg-deep);
+    border: 2px solid rgba(244,240,230,0.1);
+    border-radius: 16px;
+    padding: 16px 10px 12px;
+    color: var(--cream);
+    font-family: var(--font-body);
+    font-weight: 800;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .choice-btn .emoji{
+    display:block;
+    font-size: 2.1rem;
+    margin-bottom: 6px;
+  }
+  .choice-btn:hover{
+    transform: translateY(-4px);
+    border-color: var(--mustard);
+  }
+  .choice-btn:active{ transform: translateY(0) scale(0.97); }
+
+  .reset-row{
+    display:flex;
+    justify-content:center;
+    margin-top: 22px;
+  }
+  .reset-btn{
+    background: none;
+    border: none;
+    color: var(--steel);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .reset-btn:hover{ color: var(--coral); }
+
+  footer{
+    margin-top: 34px;
+    color: rgba(244,240,230,0.35);
+    font-size: 0.78rem;
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+  <h1>Rock Paper <span>Scissors</span></h1>
+  <p class="subtitle">Pick your weapon. Best of endless.</p>
+
+  <div class="scoreboard">
+    <div class="score-box you">
+      <div class="label">You</div>
+      <div class="value" id="youScore">0</div>
+    </div>
+    <div class="score-box cpu">
+      <div class="label">Computer</div>
+      <div class="value" id="cpuScore">0</div>
+    </div>
+  </div>
+
+  <div class="arena">
+    <div class="clash">
+      <div class="fighter">
+        <div class="tag">You</div>
+        <div class="hand you" id="youHand">❓</div>
+      </div>
+      <div class="vs">VS</div>
+      <div class="fighter">
+        <div class="tag">Computer</div>
+        <div class="hand cpu" id="cpuHand">❓</div>
+      </div>
+    </div>
+
+    <div class="result-line" id="resultLine">Make your move</div>
+
+    <div class="choices">
+      <button class="choice-btn" data-choice="rock">
+        <span class="emoji">✊</span>Rock
+      </button>
+      <button class="choice-btn" data-choice="paper">
+        <span class="emoji">✋</span>Paper
+      </button>
+      <button class="choice-btn" data-choice="scissors">
+        <span class="emoji">✌️</span>Scissors
+      </button>
+    </div>
+
+    <div class="reset-row">
+      <button class="reset-btn" id="resetBtn">Reset score</button>
+    </div>
+  </div>
+
+  <footer>Built with HTML, CSS &amp; JS · ported from the original Python version</footer>
+
+<script>
+  const emojiMap = { rock: '✊', paper: '✋', scissors: '✌️' };
+  const choices = ['rock', 'paper', 'scissors'];
+
+  const youHand = document.getElementById('youHand');
+  const cpuHand = document.getElementById('cpuHand');
+  const resultLine = document.getElementById('resultLine');
+  const youScoreEl = document.getElementById('youScore');
+  const cpuScoreEl = document.getElementById('cpuScore');
+
+  let youScore = 0;
+  let cpuScore = 0;
+
+  function decideWinner(player, computer){
+    if (player === computer) return 'draw';
+    const winsAgainst = { rock: 'scissors', paper: 'rock', scissors: 'paper' };
+    return winsAgainst[player] === computer ? 'win' : 'lose';
+  }
+
+  function play(playerChoice){
+    const computerChoice = choices[Math.floor(Math.random() * choices.length)];
+    const outcome = decideWinner(playerChoice, computerChoice);
+
+    youHand.textContent = emojiMap[playerChoice];
+    cpuHand.textContent = emojiMap[computerChoice];
+
+    youHand.classList.remove('punch');
+    cpuHand.classList.remove('punch');
+    // restart animation
+    requestAnimationFrame(() => {
+      youHand.classList.add('punch');
+      cpuHand.classList.add('punch');
+    });
+
+    resultLine.classList.remove('win', 'lose', 'draw');
+
+    if (outcome === 'draw'){
+      resultLine.textContent = "It's a draw!";
+      resultLine.classList.add('draw');
+    } else if (outcome === 'win'){
+      youScore++;
+      youScoreEl.textContent = youScore;
+      resultLine.textContent = 'You win!';
+      resultLine.classList.add('win');
+    } else {
+      cpuScore++;
+      cpuScoreEl.textContent = cpuScore;
+      resultLine.textContent = 'You lose!';
+      resultLine.classList.add('lose');
+    }
+  }
+
+  document.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.addEventListener('click', () => play(btn.dataset.choice));
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    youScore = 0;
+    cpuScore = 0;
+    youScoreEl.textContent = 0;
+    cpuScoreEl.textContent = 0;
+    youHand.textContent = '❓';
+    cpuHand.textContent = '❓';
+    resultLine.textContent = 'Make your move';
+    resultLine.classList.remove('win', 'lose', 'draw');
+  });
+</script>
+</body>
+</html>
